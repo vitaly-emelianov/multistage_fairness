@@ -7,6 +7,14 @@ from optimizer.solver import Solver
 class Optimal(Solver):
 
     def fit(self, alpha, fairness_type=None, fairness_def=None, num_stage=2):
+        """
+        Learn selection probabilities.
+        :param alpha: budget sizes
+        :param fairness_type: 'lf' (local fairness) or 'gf' (global fairness)
+        :param fairness_def: 'dp' (demographic parity) or 'eo' (equal opportunity)
+        :param num_stage: number of stages in selection process
+        :return: utility value
+        """
         lp = pulp.LpProblem("Fair Multistage Selection", pulp.LpMaximize)
         num_feat_per_stage = self.num_feat // num_stage
 
@@ -57,10 +65,16 @@ class Optimal(Solver):
         return pulp.value(lp.objective)
 
     def minimize_violation(self, alpha, num_stage, fairness_def):
+        """
+        Learn LF, GF algorithms and minimize fairness violation at the stages before the last for GF.
+        :param alpha: budget sizes
+        :param num_stage:  number of stages in selection process
+        :param fairness_def: 'dp' (demographic parity) or 'eo' (equal opportunity)
+        :return:
+        """
         gf_res = self.fit(alpha, fairness_type="gf", fairness_def=fairness_def, num_stage=num_stage)
         lf_res = self.fit(alpha, fairness_type="lf", fairness_def=fairness_def, num_stage=num_stage)
         lp_min = self.lp.deepcopy()
-        # lp_max = self.lp.deepcopy()
 
         tmin = {}
         for stage in range(1, num_stage):
@@ -72,15 +86,4 @@ class Optimal(Solver):
             lp_min += tmin[stage] >= -lp_min.constraints["lf_{}".format(stage)]
             del lp_min.constraints["lf_{}".format(stage)]
         lp_min.solve()
-
-        # tmax = {}
-        # for stage in range(1, num_stage):
-        #     tmax[stage] = pulp.LpVariable("tmax{}".format(stage), cat="Continuous")
-        # lp_max += lp_max.objective >= gf_res - 1e-7, "min_utility"
-        # for stage in range(1, num_stage):
-        #     lp_max += tmax[stage]
-        #     lp_max += -tmax[stage] >= lp_max.constraints["lf_{}".format(stage)]
-        #     lp_max += -tmax[stage] >= -lp_max.constraints["lf_{}".format(stage)]
-        #     del lp_max.constraints["lf_{}".format(stage)]
-        # lp_max.solve()
         return gf_res, lf_res, -pulp.value(lp_min.objective)
