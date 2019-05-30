@@ -12,7 +12,8 @@ This repository contains an implementation of multistage selection algorithm and
 ## Software requirements
 
 * python (>=3)
-* numpy  
+* numpy 
+* pandas 
 * pulp
 * matplotlib
 * jupyter-notebook
