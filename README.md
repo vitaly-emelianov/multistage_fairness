@@ -1,6 +1,6 @@
 # The Price of Local Fairness in Multistage Selection
 
-This repository contains an implementation of multistage fair selection algorithm and all the experiments conducted in the paper.
+This repository contains an implementation of multistage fair selection algorithm and all the experiments conducted in the paper: https://arxiv.org/abs/1906.06613
 
 ## Project Structure
 
